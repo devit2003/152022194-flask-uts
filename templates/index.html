@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Hidroponik</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f3f4f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1200px;
+            gap: 20px;
+        }
+
+        .chart-box {
+            flex: 1;
+            background-color: #ffffff;
+            padding: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            height: 300px; /* Tentukan tinggi tetap */
+        }
+
+        canvas {
+            width: 100% !important; 
+            height: 100% !important; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Monitoring Hidroponik By Devit</h1>
+    <div class="chart-container">
+        <div class="chart-box">
+            <h2>Chart Suhu</h2>
+            <canvas id="suhuChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h2>Chart Kelembapan</h2>
+            <canvas id="kelembapanChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        async function fetchData() {
+            const response = await fetch('/api/sensorData');
+            const data = await response.json();
+            return data;
+        }
+
+        async function updateCharts() {
+            const data = await fetchData();
+
+            const labels = data.map(item => new Date(item.timestamp).toLocaleTimeString());
+            const suhuData = data.filter(item => item.sensorType === 'temperature').map(item => item.value);
+            const kelembapanData = data.filter(item => item.sensorType === 'humidity').map(item => item.value);
+
+            // Chart Suhu
+            const suhuCtx = document.getElementById('suhuChart').getContext('2d');
+            new Chart(suhuCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Suhu',
+                        data: suhuData,
+                        borderColor: 'rgba(255, 159, 243, 0.8)',
+                        backgroundColor: 'rgba(255, 159, 243, 0.2)',
+                        pointBackgroundColor: 'rgba(255, 159, 243, 0.8)',
+                        pointRadius: 3,
+                        borderWidth: 1.5,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true, // Menjaga rasio aspek
+                    scales: {
+                        x: {
+                            ticks: { color: '#4a5568', maxRotation: 0 },
+                            grid: { display: false }
+                        },
+                        y: {
+                            ticks: { color: '#4a5568' },
+                            grid: { color: 'rgba(200, 200, 200, 0.2)' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Chart Kelembapan
+            const kelembapanCtx = document.getElementById('kelembapanChart').getContext('2d');
+            new Chart(kelembapanCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Kelembapan',
+                        data: kelembapanData,
+                        borderColor: 'rgba(129, 236, 236, 0.8)',
+                        backgroundColor: 'rgba(129, 236, 236, 0.2)',
+                        pointBackgroundColor: 'rgba(129, 236, 236, 0.8)',
+                        pointRadius: 3,
+                        borderWidth: 1.5,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        x: {
+                            ticks: { color: '#4a5568', maxRotation: 0 },
+                            grid: { display: false }
+                        },
+                        y: {
+                            ticks: { color: '#4a5568' },
+                            grid: { color: 'rgba(200, 200, 200, 0.2)' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        updateCharts();
+        setInterval(updateCharts, 5000);
+    </script>
+</body>
+</html>
